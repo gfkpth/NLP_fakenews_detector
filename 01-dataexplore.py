@@ -35,8 +35,13 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+from nltk import word_tokenize, bigrams, trigrams
 
+import re
+import string
 
+# auxiliary functions
+from auxiliary import *
 
 
 
@@ -57,14 +62,53 @@ annotated
 # %% 
 # Basic data overview
 
-annotated['text'].head()
+print(annotated['text'].head())
+
 print('Shape of the dataset:', annotated.shape)
 print('Label counts:', annotated['label'].value_counts())
+
 
 # %%
 
 print('Test for missing values:', annotated.isnull().sum())
 
+# none, very good
+
+
+# Let's search for special characters we need to take care of
+
+# %%
+annotated.loc[annotated.text.str.contains(r'\*|%|\)|\(')]
 
 
 # %%
+
+# find hyphens that ar not connected to letters on both sides (that are connected to at least one non-letter on the left)
+realhyphen = re.compile(r'[^A-Za-z]+-[^A-Za-z]*')
+
+testphrase = "this test-(45)-bi is a very-important (but not so)-important test - and we want to get rid of free-standing hyphens, too"
+
+realhyphen.sub(' ',testphrase)
+
+# %% The tokeniser actually does a good job of dealing with hyphens as well
+# 
+
+tokens = word_tokenize(testphrase)
+print(tokens)
+
+
+# %%
+
+punctnohyphen = list(filter(lambda x: x if x != '-' else '',string.punctuation))
+punctnohyphen
+
+#re.escape(string.punctuation)
+
+
+
+# %%
+
+
+# bi_tokens = list(bigrams(tokens))
+# print(tokens)
+# print(bi_tokens)
