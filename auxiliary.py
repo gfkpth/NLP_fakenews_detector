@@ -6,5 +6,5 @@ import re
 import string
 
 # string cleaning
-def clean_string(string,tokenize=False):
+def clean_string(string):
     pass
