@@ -41,8 +41,8 @@ import re
 import string
 
 # auxiliary functions
-import aux as aux
-import importlib; importlib.reload(aux)
+import helper as helper
+import importlib; importlib.reload(helper)
 
 
 
@@ -147,13 +147,13 @@ print(tokens)
 # %%
 # test cleaning function
 teststring = 'this is a pro-trump rallying 4534-324 inLondon %34 f cry'
-print(aux.cleaning_strings(teststring))
+print(helper.cleaning_strings(teststring))
 
 #
 
 # %% adding clean_text to annotated
 
-annotated['clean_text'] = annotated['text'].apply(aux.cleaning_strings)
+annotated['clean_text'] = annotated['text'].apply(helper.cleaning_strings)
 
 
 
