@@ -1,12 +1,16 @@
 # auxiliary functions
 
 # import
-from nltk.corpus import wordnet
+from nltk.corpus import wordnet, stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from nltk import word_tokenize, bigrams, trigrams, pos_tag
 from datetime import datetime
 from sklearn.metrics import accuracy_score, precision_score,recall_score,f1_score,classification_report, confusion_matrix
+
+
+from transformers import pipeline
+from tqdm import tqdm
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -19,37 +23,48 @@ import csv
 
 # string cleaning
 # currently not removing numbers, consider adding?
-def cleaning_strings(iostring,lower=True):
-    
-    # first check for missing spaces in front of capitalised words or after punctuation
-    # and insert space
-    missingspace = re.compile(r'([\.]|(?:[A-Za-z]*[a-z]))([A-Z][A-Za-z]*)')
-    iostring = missingspace.sub(r'\1 \2',iostring)
-    
-    # set up patterns for deletion
-    realhyphen = re.compile(r'[^A-Za-z]+-[^A-Za-z]*')
-    punctnohyphen = ''.join(list(filter(lambda x: x if x != '-' else '',string.punctuation))) + ','
+def cleaning_strings(iostring,lower=True,simpleedit=False):
+    # patterns
     multispace = re.compile(r'\s+')
+    wrongposs=re.compile(r'‚s')     # this is a strange type of possessive apostrophe
     
-    # delete patterns
-    wrongposs=re.compile(r'‚s')     # this removes a weirdly typeset possessive marking
-    specialsigns = re.compile(f"[{re.escape(punctnohyphen)}]")
+    if simpleedit:
+        iostring = multispace.sub(' ', iostring)
+        iostring = wrongposs.sub(r"'s",iostring)    # for simpleedit replace apostrophes with more common form
+    else:
     
-    # processing the patterns
-    spacepattern = [realhyphen,multispace]
-    delpattern = [wrongposs,specialsigns]
-    for p in spacepattern:
-        iostring = p.sub(' ', iostring)
+        # check for missing spaces in front of capitalised words or after punctuation
+        # and insert space
+        missingspace = re.compile(r'([\.]|(?:[A-Za-z]*[a-z]))([A-Z][A-Za-z]*)')
+        iostring = missingspace.sub(r'\1 \2',iostring)
+        
+        # set up patterns for deletion
+        realhyphen = re.compile(r'[^A-Za-z]+-[^A-Za-z]*')
+        punctnohyphen = ''.join(list(filter(lambda x: x if x != '-' else '',string.punctuation))) + ','
+        
+        
+        # delete patterns
+        
+        specialsigns = re.compile(f"[{re.escape(punctnohyphen)}]")
+        
+        # processing the patterns
+        spacepattern = [realhyphen,multispace]
+        delpattern = [wrongposs,specialsigns]
+        for p in spacepattern:
+            iostring = p.sub(' ', iostring)
 
-    for p in delpattern:
-        iostring = p.sub('', iostring)
-    
+        for p in delpattern:
+            iostring = p.sub('', iostring)
+        
     if lower:
         return iostring.lower()
     else:
         return iostring
 
 
+def remove_stop(inpstring):
+    stop_words = set(stopwords.words('english'))    
+    return ' '.join(list(filter(lambda x: '' if x in stop_words else x, word_tokenize(inpstring))))
 
 def get_wordnet_pos(word):
     """Map POS tag to first character lemmatize() accepts"""
@@ -72,17 +87,26 @@ def lemmatize(lst):
 ## to be confirmed    
     
 
+# Function to run predictions with a Hugging Face pipeline
+def run_huggingface_pipeline(model_name, data):
+    print(f"\nRunning predictions using model: {model_name}")
+    classifier = pipeline(task="text-classification", model=model_name, top_k=1)
+    predictions = []
+
+    for output in tqdm(classifier(data, truncation=True)):
+        label = output[0]["label"]
+        predictions.append(1 if label.lower() == "real" else 0)
+
+    return predictions
+
 
 # print evaluation and append results to results 
-def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,vectype='tf-idf',printout=True,csvout='results.csv',saveconfusion=True):
+def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,vectype='tf-idf',huggingpipe=False,printout=True,csvout='results.csv',saveconfusion=True):
     """ Print model evaluation
     
     Arguments:
     - **model**: the model for evaluation
-    - **test_ds** a tensorflow dataset for the test data
-    - **test_df** a pandas dataframe for the test data (expects the true labels in 'label')
-    - **acc_train** can be used to supply the final training accuracy from the fitting history for logging (otherwise, None is supplied)
-    - **acc_val** can be used to supply the final validation accuracy from the fitting history for logging (otherwise, None is supplied)
+
     - **model_id**: a string identifier for the model for logging
     - **csvout**: filepath for csv file logging the results, set to '' to disable logging
     - **printout**: set to False if no printed output is desired
@@ -102,12 +126,13 @@ def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,ve
         }
     }
     
-   
-
     
     for c in cycle:
         # Predict class probabilities
-        resdict[c]['y_pred'] = model.predict(resdict[c]['X'])
+        if not huggingpipe:
+            resdict[c]['y_pred'] = model.predict(resdict[c]['X'])
+        else:
+            resdict[c]['y_pred'] = run_huggingface_pipeline(huggingpipe, resdict[c]['X'])
     
         # Compute metrics
         resdict[c]['acc'] = accuracy_score(resdict[c]['y_obs'], resdict[c]['y_pred'])

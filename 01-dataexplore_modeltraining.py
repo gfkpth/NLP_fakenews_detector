@@ -31,11 +31,20 @@
 # - presentation
 # - predictions for testing_data.csv
 
-# %%
+# %% Load libraries
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from nltk import word_tokenize, bigrams, trigrams
+
+from sklearn.feature_extraction.text import TfidfVectorizer,CountVectorizer
+from wordcloud import WordCloud
+
+from transformers import pipeline
+from tqdm import tqdm
+
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 import re
 import string
@@ -46,7 +55,7 @@ import importlib; importlib.reload(helper)
 
 
 
-
+#####################
 # Data exploration
 
 # Plan: 
@@ -85,9 +94,6 @@ annotated['text_length'] = annotated['text'].apply(len)
 print(annotated['text_length'].describe())
 
 # Plot distribution
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 plt.figure(figsize=(8, 5))
 sns.histplot(annotated['text_length'], bins=30, kde=True)
 plt.title("Distribution of Headline Lengths")
@@ -96,8 +102,7 @@ plt.ylabel("Frequency")
 plt.show()
 # %%
 # World cloud for real and fake news
-!pip install wordcloud
-from wordcloud import WordCloud
+
 
 # Seperate headlines by label
 real_news = annotated.loc[annotated['label'] == 1,'text']
@@ -112,6 +117,7 @@ wordcloud_real = WordCloud(width=800, height=400, background_color='white').gene
 plt.imshow(wordcloud_real, interpolation='bilinear')
 plt.axis('off')
 plt.title("Word Cloud for Real News")
+plt.figsave('assets/wordcloud-real.png')
 plt.show()
 # %%
 # Plot word cloud for fake news
@@ -120,9 +126,9 @@ wordcloud_fake = WordCloud(width=800, height=400, background_color='white').gene
 plt.imshow(wordcloud_fake, interpolation='bilinear')
 plt.axis('off')
 plt.title("Word Cloud for Fake News")
+plt.figsave('assets/wordcloud-fake.png')
 plt.show()
 
-# %%
 
 # Let's search for special characters we need to take care of
 
@@ -151,26 +157,40 @@ print(tokens)
 teststring = 'this is a pro-trump rallying 4534-324 inLondon %34 f cry'
 print(helper.cleaning_strings(teststring))
 
-#
+###############################
+# Cleaning the dataset
 
 # %% adding clean_text to annotated
 
+# full cleaning
 annotated['clean_text'] = annotated['text'].apply(helper.cleaning_strings)
+# only remove extraneous spaces in 'text' field
+annotated['text'] = annotated['text'].apply(helper.cleaning_strings,simpleedit=True)
+# create a column without stop words
+annotated['no_stop'] = annotated['clean_text'].apply(helper.remove_stop)
 
 
-
-
+#####################################
+# Modelling
 # %%
+# Split the dataset into training and testing sets
+X_train_tmp, X_test_tmp, y_train, y_test = train_test_split(annotated[['text','clean_text','no_stop']], annotated['label'].values, test_size=0.2, random_state=42)
+
+# %% creating X sets
+
+X_train = X_train_tmp['no_stop'].values
+X_test = X_test_tmp['no_stop'].values
+
+X_train_clean = X_train_tmp['clean_text'].values
+X_test_clean = X_test_tmp['clean_text'].values
+
+X_train_dirty = X_train_tmp['text'].values
+X_test_dirty = X_test_tmp['text'].values
 
 
-# bi_tokens = list(bigrams(tokens))
-# print(tokens)
-# print(bi_tokens)
-
-# %%
-# Text Vectorization(TF-IDF)
-from sklearn.feature_extraction.text import TfidfVectorizer
-# Create a TF-IDF vectorizer
+#############
+# Vectorise
+# %% Create a TF-IDF vectorizer
 tfidf_vectorizer = TfidfVectorizer(
     max_features=1000,  # Limit to 1000 features
     stop_words='english',  # Remove English stop words
@@ -178,14 +198,9 @@ tfidf_vectorizer = TfidfVectorizer(
     token_pattern=r'\b\w+\b'  # Tokenize words
 )
 # Fit and transform on cleaned text data
-X = tfidf_vectorizer.fit_transform(annotated['clean_text']).toarray()
-y = annotated['label']
-
-# %%
-# Split the dataset into training and testing sets
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
+X_train_vector = tfidf_vectorizer.fit_transform(X_train).toarray()
+X_test_vector = tfidf_vectorizer.transform(X_test).toarray()
+#y = annotated['label']
 
 #################################
 # Model training and evaluation
@@ -197,10 +212,10 @@ from sklearn.linear_model import LogisticRegression
 # Create a logistic regression model
 logreg = LogisticRegression(max_iter=1000,random_state=5)
 # Train the model
-logreg.fit(X_train, y_train)
+logreg.fit(X_train_vector, y_train)
 
 # Evaluate
-helper.print_evaluation(logreg, X_train, X_test, y_train, y_test,'max_iter=1000',model_id='logreg_1000',vectype='tf-idf')
+helper.print_evaluation(logreg, X_train_vector, X_test_vector, y_train, y_test,'max_iter=1000',model_id='logreg_1000',vectype='tf-idf')
 
 
 # %%
@@ -210,10 +225,10 @@ nestim=100
 # Create a random forest classifier
 rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42)
 # Train the model
-rf_model.fit(X_train, y_train)
+rf_model.fit(X_train_vector, y_train)
 
 # Evaluate
-helper.print_evaluation(rf_model, X_train, X_test, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
+helper.print_evaluation(rf_model, X_train_vector, X_test_vector, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
 
 # %%
 # Create KNN model
@@ -222,51 +237,50 @@ neigh= 5
 # Create a KNN classifier
 knn_model = KNeighborsClassifier(n_neighbors=neigh)
 # Train the model
-knn_model.fit(X_train, y_train)
+knn_model.fit(X_train_vector, y_train)
 
 # Evaluate
-helper.print_evaluation(knn_model, X_train, X_test, y_train, y_test,f'k={neigh}',model_id='knn_5',vectype='tf-idf')
+helper.print_evaluation(knn_model, X_train_vector, X_test_vector, y_train, y_test,f'k={neigh}',model_id='knn_5',vectype='tf-idf')
+
+
+##########################################
+# Transformer models
+#
+# beware when running these without GPU, will probably take a long time (even with GPU takes a little moment)
 
 # %%
-
-
-# Run pipeline models
-!pip install transformers
-from transformers import pipeline
-from tqdm import tqdm
-# %%
-test_data = pd.read_csv(r'C:\Users\diplo\Desktop\MiniProject\NLP_fakenews_detector\data\testing_data.csv', sep='\t', header=None, names=["text"])
-# %%
-# Extract only the headlines
-headlines = test_data["text"].tolist()
+# Extract the headlines as lists (feed the full texts to the transformer models)
+headlines_train = X_train_dirty.tolist()
+headlines_test = X_test_dirty.tolist()
 
 # %%
-# Function to run predictions with a Hugging Face pipeline
-def run_huggingface_pipeline(model_name, headlines):
-    print(f"\nRunning predictions using model: {model_name}")
-    classifier = pipeline(task="text-classification", model=model_name, top_k=1)
-    predictions = []
+headlines_train[:10]
 
-    for output in tqdm(classifier(headlines, truncation=True)):
-        label = output[0]["label"]
-        predictions.append(1 if label.lower() == "real" else 0)
 
-    return predictions
+# %% run omykhailiv/bert-fake-news-recognition
 
-# Run with omykhailiv model
-pred_omykhailiv = run_huggingface_pipeline("omykhailiv/bert-fake-news-recognition", headlines)
+helper.print_evaluation(None,
+                        headlines_train,
+                        headlines_test,
+                        y_train,y_test,
+                        'defaults',
+                        model_id='omykhailiv-bert-fake-news-recognition',
+                        vectype='default',
+                        huggingpipe='omykhailiv/bert-fake-news-recognition')
 
-# Run with jy46604790 model
-pred_jy = run_huggingface_pipeline("jy46604790/Fake-News-Bert-Detect", headlines)
 
-# Save both predictions to CSV files
-submission_omykhailiv = test_data.copy()
-submission_omykhailiv["label"] = pred_omykhailiv
-submission_omykhailiv.to_csv("predictions_omykhailiv.csv", index=False)
+# %% jy46604790/Fake-News-Bert-Detect
 
-submission_jy = test_data.copy()
-submission_jy["label"] = pred_jy
-submission_jy.to_csv("predictions_jy.csv", index=False)
+helper.print_evaluation(None,
+                        headlines_train,
+                        headlines_test,
+                        y_train,y_test,
+                        'defaults',
+                        model_id='jy46604790-Fake-News-Bert-Detect',
+                        vectype='default',
+                        huggingpipe='jy46604790/Fake-News-Bert-Detect')
 
-print("\nPredictions saved as 'predictions_omykhailiv.csv' and 'predictions_jy.csv'")
+
+# Note how terribly both transformer models are performing here! Something must be off, for some reason they are actually predicting everything as fake
+
 # %%
