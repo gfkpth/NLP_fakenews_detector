@@ -5,12 +5,17 @@ from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from nltk import word_tokenize, bigrams, trigrams, pos_tag
+from datetime import datetime
+from sklearn.metrics import accuracy_score, precision_score,recall_score,f1_score,classification_report, confusion_matrix
 
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 import pandas as pd
 import re
 import string
-
+import os
+import csv
 
 # string cleaning
 # currently not removing numbers, consider adding?
@@ -68,99 +73,102 @@ def lemmatize(lst):
     
 
 
-# # print evaluation and append results to results 
-# def print_evaluation(model,test_ds,test_df,acc_train=None,acc_val=None,model_id=None,lr=None,epochs=None,batchsize=None,csvout=RESULT_CSV,printout=True):
-#     """ Print model evaluation
+# print evaluation and append results to results 
+def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,vectype='tf-idf',printout=True,csvout='results.csv',saveconfusion=True):
+    """ Print model evaluation
     
-#     Arguments:
-#     - **model**: the model for evaluation
-#     - **test_ds** a tensorflow dataset for the test data
-#     - **test_df** a pandas dataframe for the test data (expects the true labels in 'label')
-#     - **acc_train** can be used to supply the final training accuracy from the fitting history for logging (otherwise, None is supplied)
-#     - **acc_val** can be used to supply the final validation accuracy from the fitting history for logging (otherwise, None is supplied)
-#     - **model_id**: a string identifier for the model for logging
-#     - **csvout**: filepath for csv file logging the results, set to '' to disable logging
-#     - **printout**: set to False if no printed output is desired
+    Arguments:
+    - **model**: the model for evaluation
+    - **test_ds** a tensorflow dataset for the test data
+    - **test_df** a pandas dataframe for the test data (expects the true labels in 'label')
+    - **acc_train** can be used to supply the final training accuracy from the fitting history for logging (otherwise, None is supplied)
+    - **acc_val** can be used to supply the final validation accuracy from the fitting history for logging (otherwise, None is supplied)
+    - **model_id**: a string identifier for the model for logging
+    - **csvout**: filepath for csv file logging the results, set to '' to disable logging
+    - **printout**: set to False if no printed output is desired
      
-#     return:
-#     - classification report for storage and further comparison
-#     """
-#     # Predict class probabilities
-#     y_pred_probs = model.predict(test_ds)
-
-#     # Convert probabilities to class predictions
-#     y_pred = y_pred_probs.argmax(axis=1)
-#     y_true = test_df['label']  # original integer labels
-
-#     # Compute metrics
-#     acc = accuracy_score(y_true, y_pred)
-#     prec = precision_score(y_true, y_pred, average='weighted')
-#     rec = recall_score(y_true, y_pred, average='weighted')
-#     f1 = f1_score(y_true, y_pred, average='weighted')
+    return:
+    - classification report for storage and further comparison
+    """
+    cycle = ['train', 'test']
+    resdict = {
+        'train': {
+            'X': X_train,
+            'y_obs': y_train
+        },
+        'test': {
+            'X': X_test,
+            'y_obs': y_test
+        }
+    }
     
-#     class_names = (
-#     test_df[['label', 'category']]
-#     .drop_duplicates()
-#     .sort_values('label')['category']
-#     .tolist()
-#     )
+   
 
-#     report = classification_report(y_true, y_pred, target_names=class_names)
-
-#     if printout:
-#         print(f"Accuracy: {acc:.4f}")
-#         print(f"Precision: {prec:.4f}")
-#         print(f"Recall: {rec:.4f}")
-#         print(f"F1 Score: {f1:.4f}")
-#         print(report)
     
+    for c in cycle:
+        # Predict class probabilities
+        resdict[c]['y_pred'] = model.predict(resdict[c]['X'])
     
-#         # Predict & confusion matrix
-#         cm = confusion_matrix(y_true, y_pred)
-
-#         plt.figure(figsize=(8,6))
-#         sns.heatmap(cm, annot=True, fmt='d', xticklabels=class_names, yticklabels=class_names)
-#         plt.xlabel('Predicted')
-#         plt.ylabel('True')
-#         plt.title('Confusion Matrix')
-#         plt.show()
-    
-#     if csvout:
-#         write_results(model_id,lr,epochs,batchsize,acc_train,acc_val,acc,prec,rec,f1,file=csvout)
-    
-#     return report
+        # Compute metrics
+        resdict[c]['acc'] = accuracy_score(resdict[c]['y_obs'], resdict[c]['y_pred'])
+        resdict[c]['prec'] = precision_score(resdict[c]['y_obs'], resdict[c]['y_pred'], average='weighted')
+        resdict[c]['rec'] = recall_score(resdict[c]['y_obs'], resdict[c]['y_pred'], average='weighted')
+        resdict[c]['f1'] = f1_score(resdict[c]['y_obs'], resdict[c]['y_pred'], average='weighted')
 
 
-# # function to append results to csv
-# def write_results(modid,lr,epochs,batchsize,acc_train,acc_val,accuracy,precision,recall,f1,file=RESULT_CSV):
+        report = classification_report(resdict[c]['y_obs'], resdict[c]['y_pred'])
 
-#     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#     fields=[timestamp, modid, lr, epochs, batchsize, acc_train,acc_val, accuracy, precision, recall, f1]
-#     headers = ['time','model_id', 'learning_rate', 'epochs', 'batchsize', 'acc_train', 'acc_val', 'accuracy', 'precision', 'recall', 'f1_score']
-    
-    
-#     file_exists = os.path.exists(file)
-
-#     with open(file, 'a', newline='') as f:
-#         writer = csv.writer(f)
-#         if not file_exists:
-#             writer.writerow(headers)
-#         writer.writerow(fields)
+        if printout:
+            print(f'Results for {c} set')
+            print()
+            print(f"Accuracy: {resdict[c]['acc']:.4f}")
+            print(f"Precision: {resdict[c]['prec']:.4f}")
+            print(f"Recall: {resdict[c]['rec']:.4f}")
+            print(f"F1 Score: {resdict[c]['f1']:.4f}")
+            print(report)
         
         
-# # to more easily compare
-# def print_side_by_side(*tables, padding=4):
-#     # Split each table into lines
-#     split_tables = [t.splitlines() for t in tables]
+            # Predict & confusion matrix
+            cm = confusion_matrix(resdict[c]['y_obs'], resdict[c]['y_pred'])
+
+            plt.figure(figsize=(6,4))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Greens',xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
+            plt.xlabel('Predicted')
+            plt.ylabel('True')
+            plt.title(f'Confusion Matrix for {c} set')
+            
+            if saveconfusion:
+                plt.savefig('assets/' + model_id + '_' + c + '.png')
+            plt.show()
     
-#     # Find the max number of lines
-#     max_lines = max(len(t) for t in split_tables)
+    if csvout:
+        write_results(model_id,vectype,resdict,params,file=csvout)
     
-#     # Pad shorter tables with empty lines
-#     split_tables = [
-#         t + [''] * (max_lines - len(t)) for t in split_tables
-#     ]
+    #return resdict
+
+
+# function to append results to csv
+def write_results(modid,vectype,resdict,params,file='results.csv'):
+
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    fields=[timestamp, 
+            modid, 
+            vectype,
+            resdict['train']['acc'], 
+            resdict['train']['f1'], 
+            resdict['test']['acc'], 
+            resdict['test']['prec'], 
+            resdict['test']['rec'], 
+            resdict['test']['f1'], 
+            params]
+    headers = ['time','model_id', 'vec_type', 'acc_train', 'f1_train', 'accuracy', 'precision', 'recall', 'f1_score','params']
     
-#     # Join each line side-by-side
-#     for lines in zip(*split_tables):
-#         print((' ' * padding).join(line.ljust(30) for line in lines))
+    
+    file_exists = os.path.exists(file)
+
+    with open(file, 'a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(headers)
+        writer.writerow(fields)
+        
