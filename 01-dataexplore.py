@@ -200,7 +200,7 @@ logreg = LogisticRegression(max_iter=1000,random_state=5)
 logreg.fit(X_train, y_train)
 
 # Evaluate
-helper.print_evaluation(logreg, X_train, X_test, y_train, y_test,'max_iter=1000',model_id='logreg_1000')
+helper.print_evaluation(logreg, X_train, X_test, y_train, y_test,'max_iter=1000',model_id='logreg_1000',vectype='tf-idf')
 
 
 # %%
@@ -213,7 +213,7 @@ rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42)
 rf_model.fit(X_train, y_train)
 
 # Evaluate
-helper.print_evaluation(rf_model, X_train, X_test, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1')
+helper.print_evaluation(rf_model, X_train, X_test, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
 
 # %%
 # Create KNN model
@@ -225,6 +225,6 @@ knn_model = KNeighborsClassifier(n_neighbors=neigh)
 knn_model.fit(X_train, y_train)
 
 # Evaluate
-helper.print_evaluation(knn_model, X_train, X_test, y_train, y_test,f'k={neigh}',model_id='knn_5')
+helper.print_evaluation(knn_model, X_train, X_test, y_train, y_test,f'k={neigh}',model_id='knn_5',vectype='tf-idf')
 
 # %%

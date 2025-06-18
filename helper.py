@@ -74,7 +74,7 @@ def lemmatize(lst):
 
 
 # print evaluation and append results to results 
-def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,printout=True,csvout='results.csv',saveconfusion=True):
+def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,vectype='tf-idf',printout=True,csvout='results.csv',saveconfusion=True):
     """ Print model evaluation
     
     Arguments:
@@ -142,17 +142,18 @@ def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,pr
             plt.show()
     
     if csvout:
-        write_results(model_id,resdict,params,file=csvout)
+        write_results(model_id,vectype,resdict,params,file=csvout)
     
     #return resdict
 
 
 # function to append results to csv
-def write_results(modid,resdict,params,file='results.csv'):
+def write_results(modid,vectype,resdict,params,file='results.csv'):
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     fields=[timestamp, 
             modid, 
+            vectype,
             resdict['train']['acc'], 
             resdict['train']['f1'], 
             resdict['test']['acc'], 
@@ -160,7 +161,7 @@ def write_results(modid,resdict,params,file='results.csv'):
             resdict['test']['rec'], 
             resdict['test']['f1'], 
             params]
-    headers = ['time','model_id', 'acc_train', 'f1_train', 'accuracy', 'precision', 'recall', 'f1_score','params']
+    headers = ['time','model_id', 'vec_type', 'acc_train', 'f1_train', 'accuracy', 'precision', 'recall', 'f1_score','params']
     
     
     file_exists = os.path.exists(file)
