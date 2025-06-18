@@ -94,6 +94,7 @@ plt.ylabel("Frequency")
 plt.show()
 # %%
 # World cloud for real and fake news
+!pip install wordcloud
 from wordcloud import WordCloud
 
 # Seperate headlines by label
@@ -118,6 +119,7 @@ plt.imshow(wordcloud_fake, interpolation='bilinear')
 plt.axis('off')
 plt.title("Word Cloud for Fake News")
 plt.show()
+
 # %%
 
 # Let's search for special characters we need to take care of
@@ -144,8 +146,6 @@ print(tokens)
 
 # %%
 
-punctnohyphen = ''.join(list(filter(lambda x: x if x != '-' else '',string.punctuation)))
-punctnohyphen
 
 #re.escape(string.punctuation)
 
@@ -158,4 +158,100 @@ punctnohyphen
 # print(tokens)
 # print(bi_tokens)
 
+# %%
+# Text Vectorization(TF-IDF)
+from sklearn.feature_extraction.text import TfidfVectorizer
+# Create a TF-IDF vectorizer
+tfidf_vectorizer = TfidfVectorizer(
+    max_features=1000,  # Limit to 1000 features
+    stop_words='english',  # Remove English stop words
+    ngram_range=(1, 2),  # Use unigrams and bigrams
+    token_pattern=r'\b\w+\b'  # Tokenize words
+)
+# Fit and transform on cleaned text data
+X = tfidf_vectorizer.fit_transform(annotated['text']).toarray()
+y = annotated['label']
+
+# %%
+# Split the dataset into training and testing sets
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Model training and evaluation
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+# %%
+# Create a logistic regression model
+model = LogisticRegression(max_iter=1000)
+# Train the model
+model.fit(X_train, y_train)
+# Make predictions
+y_pred = model.predict(X_test)
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+print(f"Accuracy: {accuracy}")
+print("Classification Report:\n", class_report)
+
+
+# %%
+# Confusion matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+conf_matrix = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix')
+plt.show()
+# %%
+# Create a Random Forest model
+from sklearn.ensemble import RandomForestClassifier
+# Create a random forest classifier
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+# Train the model
+rf_model.fit(X_train, y_train)
+# Make predictions
+y_pred_rf = rf_model.predict(X_test)
+# Evaluate the model
+accuracy_rf = accuracy_score(y_test, y_pred_rf)
+class_report_rf = classification_report(y_test, y_pred_rf)
+print(f"Random Forest Accuracy: {accuracy_rf}")
+print("Random Forest Classification Report:\n", class_report_rf)
+# %%
+# Confusion matrix for Random Forest
+conf_matrix_rf = confusion_matrix(y_test, y_pred_rf)
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix_rf, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix for Random Forest')
+plt.show()
+# %%
+# Create KNN model
+from sklearn.neighbors import KNeighborsClassifier
+# Create a KNN classifier
+knn_model = KNeighborsClassifier(n_neighbors=5)
+# Train the model
+knn_model.fit(X_train, y_train)
+# Make predictions
+y_pred_knn = knn_model.predict(X_test)
+# Evaluate the model
+accuracy_knn = accuracy_score(y_test, y_pred_knn)
+class_report_knn = classification_report(y_test, y_pred_knn)
+print(f"KNN Accuracy: {accuracy_knn}")
+print("KNN Classification Report:\n", class_report_knn)
+# %%
+# Confusion matrix for KNN
+conf_matrix_knn = confusion_matrix(y_test, y_pred_knn)
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix_knn, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix for KNN')
+plt.show()
 # %%
