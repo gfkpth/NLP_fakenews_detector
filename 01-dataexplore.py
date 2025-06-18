@@ -41,7 +41,9 @@ import re
 import string
 
 # auxiliary functions
-from auxiliary import *
+import aux as aux
+import importlib; importlib.reload(aux)
+
 
 
 
@@ -143,11 +145,16 @@ print(tokens)
 
 
 # %%
+# test cleaning function
+teststring = 'this is a pro-trump rallying 4534-324 inLondon %34 f cry'
+print(aux.cleaning_strings(teststring))
 
-punctnohyphen = ''.join(list(filter(lambda x: x if x != '-' else '',string.punctuation)))
-punctnohyphen
+#
 
-#re.escape(string.punctuation)
+# %% adding clean_text to annotated
+
+annotated['clean_text'] = annotated['text'].apply(aux.cleaning_strings)
+
 
 
 
