@@ -1,7 +1,11 @@
 # auxiliary functions
 
 # import
+from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from nltk import word_tokenize, bigrams, trigrams, pos_tag
+
 
 import pandas as pd
 import re
@@ -42,11 +46,6 @@ def cleaning_strings(iostring,lower=True):
 
 
 
-# Your code
-
-wordnet_lemma  = WordNetLemmatizer()
-
-
 def get_wordnet_pos(word):
     """Map POS tag to first character lemmatize() accepts"""
     tag = pos_tag([word])[0][1][0]#  Get POS tag's first character (e.g., 'N' from 'NN')
@@ -59,6 +58,7 @@ def get_wordnet_pos(word):
     return tag_dict.get(tag, wordnet.NOUN) # returns the word type (Noun if we have not found)
     
 def lemmatize(lst):
+    wordnet_lemma  = WordNetLemmatizer()
     return [wordnet_lemma.lemmatize(word,pos=get_wordnet_pos(word)) for word in lst]
 
     
