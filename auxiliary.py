@@ -11,7 +11,7 @@ def clean_string(string):
     punctnohyphen = ''.join(list(filter(lambda x: x if x != '-' else '',string.punctuation)))
     multispace = re.compile(r'\s+')
     
-    filters = [realhyphen]
+    filters = [realhyphen,]
 
     
     
