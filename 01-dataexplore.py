@@ -144,7 +144,7 @@ print(tokens)
 
 # %%
 
-punctnohyphen = list(filter(lambda x: x if x != '-' else '',string.punctuation))
+punctnohyphen = ''.join(list(filter(lambda x: x if x != '-' else '',string.punctuation)))
 punctnohyphen
 
 #re.escape(string.punctuation)
