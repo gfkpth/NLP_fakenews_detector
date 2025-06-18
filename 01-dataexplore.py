@@ -178,7 +178,7 @@ tfidf_vectorizer = TfidfVectorizer(
     token_pattern=r'\b\w+\b'  # Tokenize words
 )
 # Fit and transform on cleaned text data
-X = tfidf_vectorizer.fit_transform(annotated['text']).toarray()
+X = tfidf_vectorizer.fit_transform(annotated['clean_text']).toarray()
 y = annotated['label']
 
 # %%
@@ -186,81 +186,45 @@ y = annotated['label']
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+
+#################################
 # Model training and evaluation
+
+
+# %%
+# Logistic regression
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-# %%
 # Create a logistic regression model
-model = LogisticRegression(max_iter=1000)
+logreg = LogisticRegression(max_iter=1000,random_state=5)
 # Train the model
-model.fit(X_train, y_train)
-# Make predictions
-y_pred = model.predict(X_test)
-# Evaluate the model
-accuracy = accuracy_score(y_test, y_pred)
-class_report = classification_report(y_test, y_pred)
-print(f"Accuracy: {accuracy}")
-print("Classification Report:\n", class_report)
+logreg.fit(X_train, y_train)
+
+# Evaluate
+helper.print_evaluation(logreg, X_train, X_test, y_train, y_test,'max_iter=1000',model_id='logreg_1000')
 
 
-# %%
-# Confusion matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-conf_matrix = confusion_matrix(y_test, y_pred)
-plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues',
-            xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
-plt.xlabel('Predicted')
-plt.ylabel('True')
-plt.title('Confusion Matrix')
-plt.show()
 # %%
 # Create a Random Forest model
 from sklearn.ensemble import RandomForestClassifier
+nestim=100
 # Create a random forest classifier
-rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42)
 # Train the model
 rf_model.fit(X_train, y_train)
-# Make predictions
-y_pred_rf = rf_model.predict(X_test)
-# Evaluate the model
-accuracy_rf = accuracy_score(y_test, y_pred_rf)
-class_report_rf = classification_report(y_test, y_pred_rf)
-print(f"Random Forest Accuracy: {accuracy_rf}")
-print("Random Forest Classification Report:\n", class_report_rf)
-# %%
-# Confusion matrix for Random Forest
-conf_matrix_rf = confusion_matrix(y_test, y_pred_rf)
-plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix_rf, annot=True, fmt='d', cmap='Blues',
-            xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
-plt.xlabel('Predicted')
-plt.ylabel('True')
-plt.title('Confusion Matrix for Random Forest')
-plt.show()
+
+# Evaluate
+helper.print_evaluation(rf_model, X_train, X_test, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1')
+
 # %%
 # Create KNN model
 from sklearn.neighbors import KNeighborsClassifier
+neigh= 5
 # Create a KNN classifier
-knn_model = KNeighborsClassifier(n_neighbors=5)
+knn_model = KNeighborsClassifier(n_neighbors=neigh)
 # Train the model
 knn_model.fit(X_train, y_train)
-# Make predictions
-y_pred_knn = knn_model.predict(X_test)
-# Evaluate the model
-accuracy_knn = accuracy_score(y_test, y_pred_knn)
-class_report_knn = classification_report(y_test, y_pred_knn)
-print(f"KNN Accuracy: {accuracy_knn}")
-print("KNN Classification Report:\n", class_report_knn)
-# %%
-# Confusion matrix for KNN
-conf_matrix_knn = confusion_matrix(y_test, y_pred_knn)
-plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix_knn, annot=True, fmt='d', cmap='Blues',
-            xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
-plt.xlabel('Predicted')
-plt.ylabel('True')
-plt.title('Confusion Matrix for KNN')
-plt.show()
+
+# Evaluate
+helper.print_evaluation(knn_model, X_train, X_test, y_train, y_test,f'k={neigh}',model_id='knn_5')
+
 # %%
