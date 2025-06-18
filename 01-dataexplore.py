@@ -178,7 +178,7 @@ tfidf_vectorizer = TfidfVectorizer(
     token_pattern=r'\b\w+\b'  # Tokenize words
 )
 # Fit and transform on cleaned text data
-X = tfidf_vectorizer.fit_transform(annotated['text']).toarray()
+X = tfidf_vectorizer.fit_transform(annotated['clean_text']).toarray()
 y = annotated['label']
 
 # %%
@@ -263,4 +263,46 @@ plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.title('Confusion Matrix for KNN')
 plt.show()
+# %%
+
+
+# Run pipeline models
+!pip install transformers
+from transformers import pipeline
+from tqdm import tqdm
+# %%
+test_data = pd.read_csv(r'C:\Users\diplo\Desktop\MiniProject\NLP_fakenews_detector\data\testing_data.csv', sep='\t', header=None, names=["text"])
+# %%
+# Extract only the headlines
+headlines = test_data["text"].tolist()
+
+# %%
+# Function to run predictions with a Hugging Face pipeline
+def run_huggingface_pipeline(model_name, headlines):
+    print(f"\nRunning predictions using model: {model_name}")
+    classifier = pipeline(task="text-classification", model=model_name, top_k=1)
+    predictions = []
+
+    for output in tqdm(classifier(headlines, truncation=True)):
+        label = output[0]["label"]
+        predictions.append(1 if label.lower() == "real" else 0)
+
+    return predictions
+
+# Run with omykhailiv model
+pred_omykhailiv = run_huggingface_pipeline("omykhailiv/bert-fake-news-recognition", headlines)
+
+# Run with jy46604790 model
+pred_jy = run_huggingface_pipeline("jy46604790/Fake-News-Bert-Detect", headlines)
+
+# Save both predictions to CSV files
+submission_omykhailiv = test_data.copy()
+submission_omykhailiv["label"] = pred_omykhailiv
+submission_omykhailiv.to_csv("predictions_omykhailiv.csv", index=False)
+
+submission_jy = test_data.copy()
+submission_jy["label"] = pred_jy
+submission_jy.to_csv("predictions_jy.csv", index=False)
+
+print("\nPredictions saved as 'predictions_omykhailiv.csv' and 'predictions_jy.csv'")
 # %%
