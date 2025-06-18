@@ -97,8 +97,11 @@ plt.show()
 from wordcloud import WordCloud
 
 # Seperate headlines by label
-real_news = annotated[annotated['label'] == '1']['text']
-fake_news = annotated[annotated['label'] == '0']['text']
+real_news = annotated.loc[annotated['label'] == 1,'text']
+fake_news = annotated.loc[annotated['label'] == 0,'text']
+
+
+# %%
 
 # Plot word cloud for real news
 plt.figure(figsize=(12, 6))
