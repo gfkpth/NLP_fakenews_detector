@@ -206,8 +206,8 @@ tfidf_vectorizer = TfidfVectorizer(
     token_pattern=r'\b\w+\b'  # Tokenize words
 )
 # Fit and transform on cleaned text data
-X_train_vectf = tfidf_vectorizer.fit_transform(X_train).toarray()
-X_test_vectf = tfidf_vectorizer.transform(X_test).toarray()
+X_train_vectf = tfidf_vectorizer.fit_transform(X_train_clean).toarray()
+X_test_vectf = tfidf_vectorizer.transform(X_test_clean).toarray()
 
 X_train_vectf.shape
 
@@ -257,7 +257,7 @@ helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f
 
 # %% Random Forest with GloVe
 nestim=100
-rf_glove = RandomForestClassifier(n_estimators=nestim, random_state=42)
+rf_glove = RandomForestClassifier(n_estimators=nestim, random_state=42,n_jobs=-1)
 # Train the model
 rf_glove.fit(X_train_glove, y_train)
 # Evaluate
