@@ -180,7 +180,7 @@ jy46604790 & defaults & 0.514 & 0.517 \\
 ### Collaboration
 
 - using py files to avoid notebook consistency issues with git
-- useful VS Code option for generating jupyter-like cells with `# %%`
+- `# %%`: useful VS Code option for generating jupyter-like cells 
 
 ### Outlook/reflection
 
