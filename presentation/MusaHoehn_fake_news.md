@@ -216,6 +216,7 @@ jy46604790 & defaults & 0.5140 & 0.5166 \\
 :::
 ::::
 
+
 # Conclusion
 
 ##
@@ -236,6 +237,10 @@ jy46604790 & defaults & 0.5140 & 0.5166 \\
   - lesson: also note changes to preprocessing or cleanly reset logging files
 
 
+## PS
+
+- for annotation of the test set, the xgb model falls into the same issue as the transformers: everything is 0
+- comparing the other three (Logistic Regression, Random Forest, KNN) yields an inter-annotator agreement Cohen's κ value of 0.32, which is 'fair agreement'
 
 
 

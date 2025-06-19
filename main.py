@@ -36,6 +36,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from nltk import word_tokenize, bigrams, trigrams
+from nltk.metrics import agreement
 
 # ML models
 from sklearn.linear_model import LogisticRegression
@@ -57,6 +58,8 @@ import seaborn as sns
 
 import re
 import string
+import pickle
+
 
 # auxiliary functions
 import helper as helper
@@ -388,7 +391,9 @@ helper.print_evaluation(xgb_model_lemma,
                         model_id=f'xgb_lemma_{nestim}_{max_depth}_{lr}_{alpha}',
                         vectype='tf-idf')
 
+# %% save this model to pkl, as it's taking very long to train
 
+pickle.dump(xgb_model_lemma, open('models/xgb_lemma.pkl', 'wb'))
 
 ##########################################
 # Transformer models
@@ -452,11 +457,12 @@ test_df = pd.read_csv("data/testing_data.csv",sep='\t',header=None, names=["labe
 test_df['clean_text'] = test_df['text'].apply(helper.cleaning_strings)
 test_df['clean_text'] = test_df['clean_text'].apply(helper.lemmatize)
 test_df['clean_text'] = test_df['clean_text'].apply(helper.cleaning_strings)
+
+
 # %%
 
 # TF-IDF
 X_test_final_tfidf = tfidf_vectorizer.transform(test_df['clean_text'])
-
 
 # %%
 
@@ -465,6 +471,7 @@ test_df['logreg_tfidf'] = logreg_lemma.predict(X_test_final_tfidf)
 test_df['rf_tfidf'] = rf_model_lemma.predict(X_test_final_tfidf)
 test_df['knn_tfidf'] = knn_model_lemma.predict(X_test_final_tfidf)
 test_df['xgb_tfidf'] = xgb_model_lemma.predict(X_test_final_tfidf)
+
 
 
 # %%
@@ -482,9 +489,40 @@ test_df.to_csv('data/testing_data_multiplepredictions_interannotatorcheck.csv',s
 
 # %% calculate inter-annotator agreement (using nltk.agreement)
 
-taskdata=[[0,str(i),str(rater1[i])] for i in range(0,len(rater1))]+[[1,str(i),str(rater2[i])] for i in range(0,len(rater2))]+[[2,str(i),str(rater3[i])] for i in range(0,len(rater3))]
-ratingtask = agreement.AnnotationTask(data=taskdata)
-print("kappa " +str(ratingtask.kappa()))
-print("fleiss " + str(ratingtask.multi_kappa()))
-print("alpha " +str(ratingtask.alpha()))
-print("scotts " + str(ratingtask.pi()))
+# These are your "coders"
+coders = ['logreg_tfidf', 'rf_tfidf', 'knn_tfidf', 'xgb_tfidf']
+
+# %% it turns out that xgb_model_lemma is constantly predicting 0 like the transformers!
+test_df['xgb_tfidf'].value_counts()
+
+# %%
+# Build the list of (coder, item, label) tuples
+annotations = []
+
+for idx, row in test_df.iterrows():
+    for coder in coders:
+        annotations.append((coder, idx, row[coder]))
+
+ratingtask = agreement.AnnotationTask(data=annotations)
+print("kappa for all four algorithms" +str(ratingtask.kappa()))
+#print("fleiss " + str(ratingtask.multi_kappa()))
+#print("alpha " +str(ratingtask.alpha()))
+#print("scotts " + str(ratingtask.pi()))
+
+# a kappa value of <.2 indicates no to only slight agreement for all four annotators
+
+# %% just compare the three models that are actually working
+coders = ['logreg_tfidf', 'rf_tfidf','knn_tfidf']
+
+# Build the list of (coder, item, label) tuples
+annotations = []
+
+for idx, row in test_df.iterrows():
+    for coder in coders:
+        annotations.append((coder, idx, row[coder]))
+
+ratingtask = agreement.AnnotationTask(data=annotations)
+print("kappa for LogReg and randomforest: " +str(ratingtask.kappa()))
+
+# kappa of 0.32 is 'fair agreement' for Cohen's Kappa
+
