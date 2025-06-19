@@ -163,7 +163,7 @@ print(tokens)
 
 # %%
 # test cleaning function
-teststring = 'this is a pro-trump rallying 4534-324 inLondon %34 f cry'
+teststring = 'this is a pro-trump, rallying 4534-324 inLondon %34 f cry'
 print(helper.cleaning_strings(teststring))
 
 ###############################
@@ -176,26 +176,29 @@ annotated['clean_text'] = annotated['text'].apply(helper.cleaning_strings)
 # only remove extraneous spaces in 'text' field
 annotated['text'] = annotated['text'].apply(helper.cleaning_strings,simpleedit=True)
 # create a column without stop words
-annotated['no_stop'] = annotated['clean_text'].apply(helper.remove_stop)
+annotated['lemma'] = annotated['clean_text'].apply(helper.lemmatize)
+annotated['lemma'] = annotated['lemma'].apply(helper.cleaning_strings)
 
 
 #####################################
 # Modelling
 # %%
 # Split the dataset into training and testing sets
-X_train_tmp, X_test_tmp, y_train, y_test = train_test_split(annotated[['text','clean_text','no_stop']], annotated['label'].values, test_size=0.2, random_state=42)
+X_train_tmp, X_test_tmp, y_train, y_test = train_test_split(annotated[['text','clean_text','lemma']], annotated['label'].values, test_size=0.2, random_state=42)
 
 # %% creating X sets
-
-X_train = X_train_tmp['no_stop'].values
-X_test = X_test_tmp['no_stop'].values
 
 X_train_clean = X_train_tmp['clean_text'].values
 X_test_clean = X_test_tmp['clean_text'].values
 
+X_train_lemma = X_train_tmp['lemma'].values
+X_test_lemma = X_test_tmp['lemma'].values
+
 X_train_dirty = X_train_tmp['text'].values
 X_test_dirty = X_test_tmp['text'].values
 
+# %%
+X_train_clean
 
 #############
 # Vectorisation
@@ -212,13 +215,24 @@ X_test_vectf = tfidf_vectorizer.transform(X_test_clean).toarray()
 
 X_train_vectf.shape
 
+# %% alternative vectorizer with lemmata
+# %% Create a TF-IDF vectorizer
+tfidf_vectorizer_lemma = TfidfVectorizer(
+    max_features=1000,  # Limit to 1000 features
+    stop_words='english',  # Remove English stop words
+    ngram_range=(1, 2),  # Use unigrams and bigrams
+    token_pattern=r'\b\w+\b'  # Tokenize words
+)
+# Fit and transform on cleaned text data
+X_train_lemmavec = tfidf_vectorizer_lemma.fit_transform(X_train_lemma).toarray()
+X_test_lemmavec = tfidf_vectorizer_lemma.transform(X_test_lemma).toarray()
 
 
 # %% vectorising with GloVE
 glove = api.load("glove-wiki-gigaword-100")
 glove_size=100
-X_train_glove = helper.dense_vectorize_text(X_train,glove,vector_size=glove_size)
-X_test_glove = helper.dense_vectorize_text(X_test,glove,vector_size=glove_size)
+X_train_glove = helper.dense_vectorize_text(X_train_clean,glove,vector_size=glove_size)
+X_test_glove = helper.dense_vectorize_text(X_test_clean,glove,vector_size=glove_size)
 
 
 
@@ -237,13 +251,24 @@ logreg.fit(X_train_vectf, y_train)
 helper.print_evaluation(logreg, X_train_vectf, X_test_vectf, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_{max_iter}_final',vectype='tf-idf')
 
 
+# %% Logistic regression with lemmatized input
+# Create a logistic regression model
+max_iter=500
+logreg_lemma = LogisticRegression(max_iter=max_iter,random_state=5,n_jobs=-1)
+# Train the model
+logreg_lemma.fit(X_train_lemmavec, y_train)
+
+# Evaluate
+helper.print_evaluation(logreg_lemma, X_train_lemmavec, X_test_lemmavec, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_{max_iter}_lemma',vectype='tf-idf')
+
+
 # %% Logistic regression with GloVe
 max_iter=5000
 logreg_glove = LogisticRegression(max_iter=max_iter,random_state=5,n_jobs=-1)
 # Train the model
 logreg_glove.fit(X_train_glove, y_train)
 # Evaluate
-helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_glove_{max_iter}',vectype=f'glove_{glove_size}')
+helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_glove_{max_iter}',vectype=f'glove_{glove_size}_direct')
 
 
 
@@ -270,13 +295,27 @@ rf_model_final.fit(X_train_vectf, y_train)
 # Evaluate
 helper.print_evaluation(rf_model_final, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim},max_depth={max_depth},min_samp_leaf={min_samp_leaf}',model_id=f'rndforest_{nestim}_final',vectype='tf-idf')
 
+
+# %% random forest - lemmatized
+nestim=300
+max_depth=None
+min_samp_leaf=2
+# Create a random forest classifier
+rf_model_lemma = RandomForestClassifier(n_estimators=nestim, min_samples_leaf=min_samp_leaf,max_depth=max_depth, random_state=42,n_jobs=-1)
+# Train the model
+rf_model_lemma.fit(X_train_lemmavec, y_train)
+
+# Evaluate
+helper.print_evaluation(rf_model_lemma, X_train_lemmavec, X_test_lemmavec, y_train, y_test,f'n_estimators={nestim},max_depth={max_depth},min_samp_leaf={min_samp_leaf}',model_id=f'rndforest_{nestim}_lemma',vectype='tf-idf')
+
+
 # %% Random Forest with GloVe
 nestim=100
 rf_glove = RandomForestClassifier(n_estimators=nestim, random_state=42,n_jobs=-1)
 # Train the model
 rf_glove.fit(X_train_glove, y_train)
 # Evaluate
-helper.print_evaluation(rf_glove, X_train_glove, X_test_glove, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype=f'glove_{glove_size}')
+helper.print_evaluation(rf_glove, X_train_glove, X_test_glove, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype=f'glove_{glove_size}_direct')
 
 
 
@@ -291,6 +330,17 @@ knn_model.fit(X_train_vectf, y_train)
 # Evaluate
 helper.print_evaluation(knn_model, X_train_vectf, X_test_vectf, y_train, y_test,f'k={neigh}',model_id='knn_3',vectype='tf-idf')
 
+
+# %%
+# Create KNN model - lemmatized
+neigh= 3
+# Create a KNN classifier
+knn_model_lemma = KNeighborsClassifier(n_neighbors=neigh)
+# Train the model
+knn_model_lemma.fit(X_train_lemmavec, y_train)
+
+# Evaluate
+helper.print_evaluation(knn_model_lemma, X_train_lemmavec, X_test_lemmavec, y_train, y_test,f'k={neigh}',model_id=f'knn_{neigh}_lemma',vectype='tf-idf')
 
 
 # %% XGBoost
@@ -317,6 +367,25 @@ helper.print_evaluation(xgb_model_final,
                         y_test,
                         f'n_estim={nestim},max_depth={max_depth},lr={lr},alpha={alpha}',
                         model_id=f'xgb_final_{nestim}_{max_depth}_{lr}_{alpha}',
+                        vectype='tf-idf')
+
+
+# %% XGBoost - lemmatized
+nestim=500
+max_depth=100
+lr=0.3
+alpha=0.1
+xgb_model_lemma = xgb.XGBClassifier(n_estimators=nestim,max_depth=max_depth, learning_rate=lr,reg_alpha=alpha, random_state=1)
+xgb_model_lemma.fit(X_train_lemmavec, y_train)
+
+# Evaluate
+helper.print_evaluation(xgb_model_lemma, 
+                        X_train_lemmavec, 
+                        X_test_lemmavec, 
+                        y_train, 
+                        y_test,
+                        f'n_estim={nestim},max_depth={max_depth},lr={lr},alpha={alpha}',
+                        model_id=f'xgb_lemma_{nestim}_{max_depth}_{lr}_{alpha}',
                         vectype='tf-idf')
 
 
@@ -367,7 +436,7 @@ results
 
 # %%
 
-print(results[['model_id','params','acc_train','accuracy']].to_latex(index=False, float_format="%.3f"))
+print(results[['model_id','params','acc_train','accuracy']].to_latex(index=False, float_format="%.4f",escape=True))
 
 
 
@@ -381,6 +450,8 @@ test_df = pd.read_csv("data/testing_data.csv",sep='\t',header=None, names=["labe
 
 # Clean the text
 test_df['clean_text'] = test_df['text'].apply(helper.cleaning_strings)
+test_df['clean_text'] = test_df['clean_text'].apply(helper.lemmatize)
+test_df['clean_text'] = test_df['clean_text'].apply(helper.cleaning_strings)
 # %%
 
 # TF-IDF
@@ -390,9 +461,10 @@ X_test_final_tfidf = tfidf_vectorizer.transform(test_df['clean_text'])
 # %%
 
 # Predictions
-test_df['logreg_tfidf'] = logreg.predict(X_test_final_tfidf)
-test_df['rf_tfidf'] = rf_model_final.predict(X_test_final_tfidf)
-test_df['knn_tfidf'] = knn_model.predict(X_test_final_tfidf)
+test_df['logreg_tfidf'] = logreg_lemma.predict(X_test_final_tfidf)
+test_df['rf_tfidf'] = rf_model_lemma.predict(X_test_final_tfidf)
+test_df['knn_tfidf'] = knn_model_lemma.predict(X_test_final_tfidf)
+test_df['xgb_tfidf'] = xgb_model_lemma.predict(X_test_final_tfidf)
 
 
 # %%
