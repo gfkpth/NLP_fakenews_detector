@@ -228,13 +228,13 @@ X_test_glove = helper.dense_vectorize_text(X_test,glove,vector_size=glove_size)
 
 # %% Logistic regression
 # Create a logistic regression model
-max_iter=1000
+max_iter=500
 logreg = LogisticRegression(max_iter=max_iter,random_state=5,n_jobs=-1)
 # Train the model
 logreg.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(logreg, X_train_vectf, X_test_vectf, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_{max_iter}',vectype='tf-idf')
+helper.print_evaluation(logreg, X_train_vectf, X_test_vectf, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_{max_iter}_final',vectype='tf-idf')
 
 
 # %% Logistic regression with GloVe
@@ -244,6 +244,7 @@ logreg_glove = LogisticRegression(max_iter=max_iter,random_state=5,n_jobs=-1)
 logreg_glove.fit(X_train_glove, y_train)
 # Evaluate
 helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_glove_{max_iter}',vectype=f'glove_{glove_size}')
+
 
 
 
@@ -258,16 +259,16 @@ rf_model.fit(X_train_vectf, y_train)
 helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
 
 # %% another random forest
-nestim=1000
+nestim=300
 max_depth=None
 min_samp_leaf=2
 # Create a random forest classifier
-rf_model = RandomForestClassifier(n_estimators=nestim, min_samples_leaf=min_samp_leaf,max_depth=max_depth, random_state=42,n_jobs=-1)
+rf_model_final = RandomForestClassifier(n_estimators=nestim, min_samples_leaf=min_samp_leaf,max_depth=max_depth, random_state=42,n_jobs=-1)
 # Train the model
-rf_model.fit(X_train_vectf, y_train)
+rf_model_final.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim},max_depth={max_depth},min_samp_leaf={min_samp_leaf}',model_id=f'rndforest_{nestim}',vectype='tf-idf')
+helper.print_evaluation(rf_model_final, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim},max_depth={max_depth},min_samp_leaf={min_samp_leaf}',model_id=f'rndforest_{nestim}_final',vectype='tf-idf')
 
 # %% Random Forest with GloVe
 nestim=100
@@ -302,20 +303,20 @@ helper.print_evaluation(xgb_model, X_train_vectf, X_test_vectf, y_train, y_test,
 
 # %% XGBoost tweaking
 nestim=500
-max_depth=200
-lr=0.07
+max_depth=100
+lr=0.3
 alpha=0.1
-xgb_model = xgb.XGBClassifier(n_estimators=nestim,max_depth=max_depth, learning_rate=lr,reg_alpha=alpha, random_state=1)
-xgb_model.fit(X_train_vectf, y_train)
+xgb_model_final = xgb.XGBClassifier(n_estimators=nestim,max_depth=max_depth, learning_rate=lr,reg_alpha=alpha, random_state=1)
+xgb_model_final.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(xgb_model, 
+helper.print_evaluation(xgb_model_final, 
                         X_train_vectf, 
                         X_test_vectf, 
                         y_train, 
                         y_test,
                         f'n_estim={nestim},max_depth={max_depth},lr={lr},alpha={alpha}',
-                        model_id=f'xgb_{nestim}_{max_depth}_{lr}_{alpha}',
+                        model_id=f'xgb_final_{nestim}_{max_depth}_{lr}_{alpha}',
                         vectype='tf-idf')
 
 
@@ -329,10 +330,6 @@ helper.print_evaluation(xgb_model,
 # Extract the headlines as lists (feed the full texts to the transformer models)
 headlines_train = X_train_dirty.tolist()
 headlines_test = X_test_dirty.tolist()
-
-# %%
-headlines_train[:10]
-
 
 # %% run omykhailiv/bert-fake-news-recognition
 
@@ -375,27 +372,23 @@ results
 
 
 # Load test data
-test_df = pd.read_csv("data/testing_data.csv")
+test_df = pd.read_csv("data/testing_data.csv",sep='\t',header=None, names=["label", "text"])
 
 # Clean the text
 test_df['clean_text'] = test_df['text'].apply(helper.cleaning_strings)
-test_df['no_stop'] = test_df['clean_text'].apply(helper.remove_stop)
-
 # %%
 
 # TF-IDF
 X_test_final_tfidf = tfidf_vectorizer.transform(test_df['clean_text'])
 
-# GloVe
-X_test_final_glove = helper.dense_vectorize_text(test_df['no_stop'], glove, vector_size=glove_size)
+
 # %%
 
 # Predictions
 test_df['logreg_tfidf'] = logreg.predict(X_test_final_tfidf)
-test_df['logreg_glove'] = logreg_glove.predict(X_test_final_glove)
-test_df['rf_tfidf'] = rf_model.predict(X_test_final_tfidf)
-test_df['rf_glove'] = rf_glove.predict(X_test_final_glove)
+test_df['rf_tfidf'] = rf_model_final.predict(X_test_final_tfidf)
 test_df['knn_tfidf'] = knn_model.predict(X_test_final_tfidf)
 
 
 # %%
+test_df.head()
