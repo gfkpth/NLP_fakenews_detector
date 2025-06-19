@@ -400,6 +400,8 @@ test_df.head()
 test_df[['logreg_tfidf','text']].to_csv('data/testing_data_with_predictions.csv',sep='\t',header=False,index=False)
 
 
+####################################
+# Additional checks for curiosity
 # %% but we also save a csv.file with our four predictions for later calculation of inter-annotator agreement
 test_df.to_csv('data/testing_data_multiplepredictions_interannotatorcheck.csv',sep='t',index=False)
 
