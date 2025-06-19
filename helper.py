@@ -46,7 +46,7 @@ def cleaning_strings(iostring,lower=True,simpleedit=False):
         
         # delete patterns
         
-        specialsigns = re.compile(f"[{re.escape(punctnohyphen)}]")
+        specialsigns = re.compile(f"[{re.escape(punctnohyphen)}‚]")
         
         # processing the patterns
         spacepattern = [realhyphen,multispace]
@@ -78,9 +78,9 @@ def get_wordnet_pos(word):
     
     return tag_dict.get(tag, wordnet.NOUN) # returns the word type (Noun if we have not found)
     
-def lemmatize(lst):
+def lemmatize(iostring):
     wordnet_lemma  = WordNetLemmatizer()
-    return [wordnet_lemma.lemmatize(word,pos=get_wordnet_pos(word)) for word in lst]
+    return ' '.join([wordnet_lemma.lemmatize(word,pos=get_wordnet_pos(word)) for word in word_tokenize(iostring)])
 
     
     

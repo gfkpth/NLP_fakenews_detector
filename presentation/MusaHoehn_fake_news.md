@@ -123,27 +123,30 @@ csquotes: true
 
 \dummy{
   \small
-  \begin{tabular}{llrr}
+\begin{tabular}{llrr}
 \toprule
-model-id & params & acc-train & accuracy \\
+model\_id & params & acc\_train & accuracy \\
 \midrule
-logreg-final & miter=500 & 0.917 & 0.908 \\
-logreg-1000 & miter=1000 & 0.917 & 0.908 \\
-xgb-final & est=500,mdepth=100,lr=0.3,α=0.1 & 0.990 & 0.906 \\
-xgb & est=500,mdepth=100,lr=0.3 & 0.990 & 0.905 \\
-xgb & est=400,mdepth=100,lr=0.5 & 0.990 & 0.905 \\
-rndforest-final & est=300,min\_samp\_leaf=2 & 0.938 & 0.895 \\
-xgb & est=100,mdepth=50,lr=0.04 & 0.915 & 0.882 \\
-rndforest & est=100 & 1.000 & 0.878 \\
-logreg-glove & miter=1000 & 0.869 & 0.870 \\
-xgb & est=200,mdepth=50,lr=0.005 & 0.877 & 0.850 \\
-rndforest & est=300,mdepth=30 & 0.868 & 0.842 \\
-xgb & est=10,mdepth=50,lr=0.04 & 0.861 & 0.837 \\
-knn & k=3 & 0.915 & 0.817 \\
-knn & k=5 & 0.883 & 0.804 \\
-knn & k=10 & 0.816 & 0.780 \\
-omykhailiv & defaults & 0.514 & 0.517 \\
-jy46604790 & defaults & 0.514 & 0.517 \\
+logreg\_lemma & miter=500 & 0.9209 & 0.9133 \\
+xgb\_lemma\ & est=500,depth=100,lr=0.3,α=0.1 & 0.9963 & 0.9130 \\
+logreg\_final & miter=500 & 0.9172 & 0.9084 \\
+logreg\_1000 & miter=1000 & 0.9172 & 0.9084 \\
+xgb\_final & est=500,depth=100,lr=0.3,α=0.1 & 0.9899 & 0.9065 \\
+xgb & est=500,depth=200,lr=0.07,α=0.1 & 0.9896 & 0.9037 \\
+xgb\_2 & est=200,depth=0,lr=0.1 & 0.9896 & 0.9026 \\
+rndforest\_lemma & est=300,minsleaf=2 & 0.9409 & 0.9002 \\
+xgb\_2 & est=200,depth=50,lr=0.04 & 0.9407 & 0.8971 \\
+rndforest\_final & est=300,minsleaf=2 & 0.9382 & 0.8949 \\
+xgb\_1 & defaults & 0.9002 & 0.8807 \\
+logreg\_glove & miter=500 & 0.8689 & 0.8703 \\
+rndforest\_2 & est=300,depth=30 & 0.8677 & 0.8418 \\
+xgb\_2 & est=10,depth=50,lr=0.04 & 0.8611 & 0.8371 \\
+knn\_3 & k=3 & 0.9154 & 0.8172 \\
+knn\_5 & k=5 & 0.8829 & 0.8037 \\
+knn\_3\_lemma & k=3 & 0.8901 & 0.7993 \\
+knn\_10 & k=10 & 0.8158 & 0.7804 \\
+omykhailiv & defaults & 0.5140 & 0.5166 \\
+jy46604790 & defaults & 0.5140 & 0.5166 \\
 \bottomrule
 \end{tabular}
 }
@@ -151,14 +154,15 @@ jy46604790 & defaults & 0.514 & 0.517 \\
 
 ## 
 
-- best performing: logistic regression model
+- best performing: logistic regression model with lemmatized dataset
   - max-iterations did not seem to make a difference
 - xgb and RandomForest very close by
   - but: high risk of overfitting
   - longer training times/higher complexity
+- knn not performing very well
+  - using lemmatized dataset actually leads to drop in accuracy
 
-
-##
+## Confusion matrices LogReg
 
 :::: {.columns}
 ::: {.column width="49%"}
@@ -166,10 +170,51 @@ jy46604790 & defaults & 0.514 & 0.517 \\
 :::
 ::: {.column width="49%"}
 
-![Confusion matrix for CGB model](../assets/xgb_final_500_100_0.3_0.1_test.png)
+![LogReg lemmatized](../assets/logreg_500_lemma_test.png)
 :::
 ::::
 
+
+
+## Confusion matrices XGBoost
+
+:::: {.columns}
+::: {.column width="49%"}
+![XGB model](../assets/xgb_final_500_100_0.3_0.1_test.png)
+:::
+::: {.column width="49%"}
+
+![XGB lemmatized](../assets/xgb_lemma_500_100_0.3_0.1_test.png)
+
+:::
+::::
+
+
+## Confusion matrices RandomForest
+
+:::: {.columns}
+::: {.column width="49%"}
+![RandomForest](../assets/rndforest_300_final_test.png)
+:::
+::: {.column width="49%"}
+
+![RandomForest lemmatized](../assets/rndforest_300_lemma_test.png)
+
+:::
+::::
+
+## Confusion matrices KNN
+
+:::: {.columns}
+::: {.column width="49%"}
+![KNN, k=3](../assets/knn_3_test.png)
+:::
+::: {.column width="49%"}
+
+![KNN lemmatized](../assets/knn_3_lemma_test.png)
+
+:::
+::::
 
 # Conclusion
 
