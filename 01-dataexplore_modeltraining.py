@@ -37,6 +37,12 @@ from sklearn.model_selection import train_test_split
 
 from nltk import word_tokenize, bigrams, trigrams
 
+# ML models
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+
 from sklearn.feature_extraction.text import TfidfVectorizer,CountVectorizer
 from wordcloud import WordCloud
 
@@ -203,21 +209,20 @@ tfidf_vectorizer = TfidfVectorizer(
 X_train_vectf = tfidf_vectorizer.fit_transform(X_train).toarray()
 X_test_vectf = tfidf_vectorizer.transform(X_test).toarray()
 
-# %%
-X_train[:20]
+
 
 # %% vectorising with GloVE
 glove = api.load("glove-wiki-gigaword-100")
 X_train_glove = helper.dense_vectorize_text(X_train,glove)
+X_test_glove = helper.dense_vectorize_text(X_test,glove)
+
 
 
 #################################
 # Model training and evaluation
 
 
-# %%
-# Logistic regression
-from sklearn.linear_model import LogisticRegression
+# %% Logistic regression
 # Create a logistic regression model
 logreg = LogisticRegression(max_iter=1000,random_state=5)
 # Train the model
@@ -227,9 +232,18 @@ logreg.fit(X_train_vectf, y_train)
 helper.print_evaluation(logreg, X_train_vectf, X_test_vectf, y_train, y_test,'max_iter=1000',model_id='logreg_1000',vectype='tf-idf')
 
 
+# %% Logistic regression with GloVe
+
+logreg_glove = LogisticRegression(max_iter=1000,random_state=5)
+# Train the model
+logreg_glove.fit(X_train_glove, y_train)
+# Evaluate
+helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,'max_iter=1000',model_id='logreg_glove',vectype='glove')
+
+
+
 # %%
 # Create a Random Forest model
-from sklearn.ensemble import RandomForestClassifier
 nestim=100
 # Create a random forest classifier
 rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42)
@@ -241,7 +255,6 @@ helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f
 
 # %%
 # Create KNN model
-from sklearn.neighbors import KNeighborsClassifier
 neigh= 5
 # Create a KNN classifier
 knn_model = KNeighborsClassifier(n_neighbors=neigh)
