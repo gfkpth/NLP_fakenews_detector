@@ -238,12 +238,11 @@ logreg_glove = LogisticRegression(max_iter=1000,random_state=5)
 # Train the model
 logreg_glove.fit(X_train_glove, y_train)
 # Evaluate
-helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,'max_iter=1000',model_id='logreg_glove',vectype='glove')
+helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,'max_iter=1000',model_id='logreg_glove',vectype='glove_100')
 
 
 
-# %%
-# Create a Random Forest model
+# %% Create a Random Forest model
 nestim=100
 # Create a random forest classifier
 rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42)
@@ -252,6 +251,16 @@ rf_model.fit(X_train_vectf, y_train)
 
 # Evaluate
 helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
+
+# %% Random Forest with GloVe
+nestim=100
+rf_glove = RandomForestClassifier(n_estimators=nestim, random_state=42)
+# Train the model
+rf_glove.fit(X_train_glove, y_train)
+# Evaluate
+helper.print_evaluation(rf_glove, X_train_glove, X_test_glove, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='glove_100')
+
+
 
 # %%
 # Create KNN model
