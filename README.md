@@ -42,14 +42,14 @@ This project tackles the problem of identifying fake news headlines using Natura
 - GloVe Embeddings: Word vectors averaged to form dense representation
 
 ## Models Trained
-| Model               | Vector Type  | Notes                                  |
-| ------------------- | ------------ | -------------------------------------- |
-| Logistic Regression | TF-IDF       | High accuracy, lightweight             |
-| Random Forest       | TF-IDF       | Handles nonlinear relationships        |
-| K-Nearest Neighbors | TF-IDF       | Simpler baseline, slower on large data |
-| Logistic Regression | GloVe        | Dense embeddings, performs well        |
-| Random Forest       | GloVe        | More noise-sensitive with dense input  |
-| XGBoost             | TF-IDF       | Strong performance, faster than RF     |
+| Model               | Vector Type  | Notes                                                        |
+| ------------------- | ------------ | -------------------------------------------------------------|
+| Logistic Regression | TF-IDF       | High accuracy, lightweight                                   |
+| Random Forest       | TF-IDF       | Handles nonlinear relationships                              |
+| K-Nearest Neighbors | TF-IDF       | Simpler baseline, slower on large data                       |
+| Logistic Regression | GloVe        | Dense embeddings, performs ok, but worse than TF-IDF         |
+| Random Forest       | GloVe        | More noise-sensitive with dense input                        |
+| XGBoost             | TF-IDF       | Strong performance, faster than RF                           |
 
 
 ## Hugging Face Models
@@ -67,9 +67,12 @@ Performed on validation split (80/20) from training data using:
 Transformers were not trained further but used directly for test-time inference.
 
 # Predictions
-Predictions were made for all models and saved as CSV:
-- submission_logreg_tfidf.csv
-- submission_rf_glove.csv
-- submission_omykhailiv.csv
-- submission_jy46604790.csv
-......
+
+Predictions were made for the models in various settings and saved in [results.csv](results.csv).
+
+Also, the predictions for the unannotated test set was made based on our strongest model, a Logistic Regression, and written to [/data/testing_data_with_predictions.csv](testing_data_with_predictions.csv).
+
+We also created predictions with the three other top-performing machine learning models and saved the results to [/data/testing_data_multiplepredictions_interannotatorcheck.csv](/data/testing_data_multiplepredictions_interannotatorcheck.csv).
+
+For reasons currently unclear to us, the XGBClassifier performed very badly - it assigned 0 to all test items.
+For a comparison of inter-annotator agreement we therefore excluded that model. Cohen's κ for the three remaining models (Logistic Regression, Random Forest, KNN) was 0.32, indicating 'fair agreement'.
