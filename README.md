@@ -23,7 +23,13 @@ This project tackles the problem of identifying fake news headlines using Natura
 - Prediction file with the same format as test file, but `label` column filled with predicted values
 
 ## Project Structure
-
+- data
+  - training_data.csv
+  - testing_data.csv
+- main.py                               # Preprocessing, model training, evaluation
+  - helpers.py                          # Custom cleaning and vectorization functions
+  - submission_logreg_tfidf.csv         # Example output file
+- README.md
 
 ## Preprocessing Pipeline
 - Lowercase conversion
@@ -61,3 +67,9 @@ Performed on validation split (80/20) from training data using:
 Transformers were not trained further but used directly for test-time inference.
 
 # Predictions
+Predictions were made for all models and saved as CSV:
+- submission_logreg_tfidf.csv
+- submission_rf_glove.csv
+- submission_omykhailiv.csv
+- submission_jy46604790.csv
+......
