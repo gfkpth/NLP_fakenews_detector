@@ -478,7 +478,7 @@ test_df[['logreg_tfidf','text']].to_csv('data/testing_data_with_predictions.csv'
 ####################################
 # Additional checks for curiosity
 # %% but we also save a csv.file with our four predictions for later calculation of inter-annotator agreement
-test_df.to_csv('data/testing_data_multiplepredictions_interannotatorcheck.csv',sep='t',index=False)
+test_df.to_csv('data/testing_data_multiplepredictions_interannotatorcheck.csv',sep='\t',index=False)
 
 # %% calculate inter-annotator agreement (using nltk.agreement)
 
