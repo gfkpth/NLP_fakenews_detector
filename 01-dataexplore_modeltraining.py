@@ -209,12 +209,15 @@ tfidf_vectorizer = TfidfVectorizer(
 X_train_vectf = tfidf_vectorizer.fit_transform(X_train).toarray()
 X_test_vectf = tfidf_vectorizer.transform(X_test).toarray()
 
+X_train_vectf.shape
+
 
 
 # %% vectorising with GloVE
 glove = api.load("glove-wiki-gigaword-100")
-X_train_glove = helper.dense_vectorize_text(X_train,glove)
-X_test_glove = helper.dense_vectorize_text(X_test,glove)
+glove_size=100
+X_train_glove = helper.dense_vectorize_text(X_train,glove,vector_size=glove_size)
+X_test_glove = helper.dense_vectorize_text(X_test,glove,vector_size=glove_size)
 
 
 
@@ -238,14 +241,14 @@ logreg_glove = LogisticRegression(max_iter=1000,random_state=5)
 # Train the model
 logreg_glove.fit(X_train_glove, y_train)
 # Evaluate
-helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,'max_iter=1000',model_id='logreg_glove',vectype='glove_100')
+helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,'max_iter=1000',model_id='logreg_glove',vectype=f'glove_{glove_size}')
 
 
 
 # %% Create a Random Forest model
 nestim=100
 # Create a random forest classifier
-rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42)
+rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42,n_jobs=-1)
 # Train the model
 rf_model.fit(X_train_vectf, y_train)
 
@@ -258,7 +261,7 @@ rf_glove = RandomForestClassifier(n_estimators=nestim, random_state=42)
 # Train the model
 rf_glove.fit(X_train_glove, y_train)
 # Evaluate
-helper.print_evaluation(rf_glove, X_train_glove, X_test_glove, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='glove_100')
+helper.print_evaluation(rf_glove, X_train_glove, X_test_glove, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype=f'glove_{glove_size}')
 
 
 
