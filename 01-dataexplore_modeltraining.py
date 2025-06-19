@@ -36,6 +36,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from nltk import word_tokenize, bigrams, trigrams
+from nltk import agreement
+
 
 # ML models
 from sklearn.linear_model import LogisticRegression
@@ -388,7 +390,24 @@ X_test_final_tfidf = tfidf_vectorizer.transform(test_df['clean_text'])
 test_df['logreg_tfidf'] = logreg.predict(X_test_final_tfidf)
 test_df['rf_tfidf'] = rf_model_final.predict(X_test_final_tfidf)
 test_df['knn_tfidf'] = knn_model.predict(X_test_final_tfidf)
-
+test_df['xgb_tfidf'] = xgb_model_final.predict(X_test_final_tfidf)
 
 # %%
 test_df.head()
+
+# %% to follow instructions, we use our logreg predictions for the final answer
+
+test_df[['logreg_tfidf','text']].to_csv('data/testing_data_with_predictions.csv',sep='\t',header=False,index=False)
+
+
+# %% but we also save a csv.file with our four predictions for later calculation of inter-annotator agreement
+test_df.to_csv('data/testing_data_multiplepredictions_interannotatorcheck.csv',sep='t',index=False)
+
+# %% calculate inter-annotator agreement (using nltk.agreement)
+
+taskdata=[[0,str(i),str(rater1[i])] for i in range(0,len(rater1))]+[[1,str(i),str(rater2[i])] for i in range(0,len(rater2))]+[[2,str(i),str(rater3[i])] for i in range(0,len(rater3))]
+ratingtask = agreement.AnnotationTask(data=taskdata)
+print("kappa " +str(ratingtask.kappa()))
+print("fleiss " + str(ratingtask.multi_kappa()))
+print("alpha " +str(ratingtask.alpha()))
+print("scotts " + str(ratingtask.pi()))
