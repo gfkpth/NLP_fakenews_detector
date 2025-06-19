@@ -175,11 +175,14 @@ jy46604790 & defaults & 0.514 & 0.517 \\
 
 ##
 
-- logistic regression model offers best performance among tested options
-- practical: using py files to avoid notebook consistency issues with git
-- VS Code offers the option of generating jupyter-like cells with `# %%`
+- logistic regression model offers best performance
 
-## Outlook/reflection
+### Collaboration
+
+- using py files to avoid notebook consistency issues with git
+- useful VS Code option for generating jupyter-like cells with `# %%`
+
+### Outlook/reflection
 
   - further experimentation with vectoriser settings
   - actually implement lemmatisation (oops)
