@@ -36,8 +36,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from nltk import word_tokenize, bigrams, trigrams
-from nltk import agreement
-
 
 # ML models
 from sklearn.linear_model import LogisticRegression
@@ -395,7 +393,7 @@ X_test_final_tfidf = tfidf_vectorizer.transform(test_df['clean_text'])
 test_df['logreg_tfidf'] = logreg.predict(X_test_final_tfidf)
 test_df['rf_tfidf'] = rf_model_final.predict(X_test_final_tfidf)
 test_df['knn_tfidf'] = knn_model.predict(X_test_final_tfidf)
-test_df['xgb_tfidf'] = xgb_model_final.predict(X_test_final_tfidf)
+
 
 # %%
 test_df.head()
