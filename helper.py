@@ -167,7 +167,7 @@ def print_evaluation(model,X_train,X_test,y_train,y_test,params,model_id=None,ve
             # Predict & confusion matrix
             cm = confusion_matrix(resdict[c]['y_obs'], resdict[c]['y_pred'])
 
-            plt.figure(figsize=(6,4))
+            plt.figure(figsize=(4,3))
             sns.heatmap(cm, annot=True, fmt='d', cmap='Greens',xticklabels=['Fake', 'Real'], yticklabels=['Fake', 'Real'])
             plt.xlabel('Predicted')
             plt.ylabel('True')

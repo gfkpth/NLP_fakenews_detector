@@ -367,6 +367,11 @@ helper.print_evaluation(None,
 results = pd.read_csv('results.csv').sort_values(by='accuracy',ascending=False)
 results
 
+# %%
+
+print(results[['model_id','params','acc_train','accuracy']].to_latex(index=False, float_format="%.3f"))
+
+
 
 ##################################
 # Predicting results for test.csv
