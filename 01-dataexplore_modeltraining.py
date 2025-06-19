@@ -41,6 +41,7 @@ from nltk import word_tokenize, bigrams, trigrams
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
+import xgboost as xgb
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer,CountVectorizer
@@ -227,21 +228,22 @@ X_test_glove = helper.dense_vectorize_text(X_test,glove,vector_size=glove_size)
 
 # %% Logistic regression
 # Create a logistic regression model
-logreg = LogisticRegression(max_iter=1000,random_state=5)
+max_iter=1000
+logreg = LogisticRegression(max_iter=max_iter,random_state=5,n_jobs=-1)
 # Train the model
 logreg.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(logreg, X_train_vectf, X_test_vectf, y_train, y_test,'max_iter=1000',model_id='logreg_1000',vectype='tf-idf')
+helper.print_evaluation(logreg, X_train_vectf, X_test_vectf, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_{max_iter}',vectype='tf-idf')
 
 
 # %% Logistic regression with GloVe
-
-logreg_glove = LogisticRegression(max_iter=1000,random_state=5)
+max_iter=5000
+logreg_glove = LogisticRegression(max_iter=max_iter,random_state=5,n_jobs=-1)
 # Train the model
 logreg_glove.fit(X_train_glove, y_train)
 # Evaluate
-helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,'max_iter=1000',model_id='logreg_glove',vectype=f'glove_{glove_size}')
+helper.print_evaluation(logreg_glove, X_train_glove, X_test_glove, y_train, y_test,f'max_iter={max_iter}',model_id=f'logreg_glove_{max_iter}',vectype=f'glove_{glove_size}')
 
 
 
@@ -255,6 +257,18 @@ rf_model.fit(X_train_vectf, y_train)
 # Evaluate
 helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
 
+# %% another random forest
+nestim=1000
+max_depth=None
+min_samp_leaf=2
+# Create a random forest classifier
+rf_model = RandomForestClassifier(n_estimators=nestim, min_samples_leaf=min_samp_leaf,max_depth=max_depth, random_state=42,n_jobs=-1)
+# Train the model
+rf_model.fit(X_train_vectf, y_train)
+
+# Evaluate
+helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim},max_depth={max_depth},min_samp_leaf={min_samp_leaf}',model_id=f'rndforest_{nestim}',vectype='tf-idf')
+
 # %% Random Forest with GloVe
 nestim=100
 rf_glove = RandomForestClassifier(n_estimators=nestim, random_state=42,n_jobs=-1)
@@ -267,14 +281,42 @@ helper.print_evaluation(rf_glove, X_train_glove, X_test_glove, y_train, y_test,f
 
 # %%
 # Create KNN model
-neigh= 5
+neigh= 3
 # Create a KNN classifier
 knn_model = KNeighborsClassifier(n_neighbors=neigh)
 # Train the model
 knn_model.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(knn_model, X_train_vectf, X_test_vectf, y_train, y_test,f'k={neigh}',model_id='knn_5',vectype='tf-idf')
+helper.print_evaluation(knn_model, X_train_vectf, X_test_vectf, y_train, y_test,f'k={neigh}',model_id='knn_3',vectype='tf-idf')
+
+
+
+# %% XGBoost
+
+xgb_model = xgb.XGBClassifier(random_state=1)
+xgb_model.fit(X_train_vectf, y_train)
+
+# Evaluate
+helper.print_evaluation(xgb_model, X_train_vectf, X_test_vectf, y_train, y_test,f'defaults',model_id='xgb_1',vectype='tf-idf')
+
+# %% XGBoost tweaking
+nestim=500
+max_depth=100
+lr=0.3
+xgb_model = xgb.XGBClassifier(n_estimators=nestim,max_depth=max_depth, learning_rate=lr, random_state=1)
+xgb_model.fit(X_train_vectf, y_train)
+
+# Evaluate
+helper.print_evaluation(xgb_model, 
+                        X_train_vectf, 
+                        X_test_vectf, 
+                        y_train, 
+                        y_test,
+                        f'n_estim={nestim},max_depth={max_depth},lr={lr}',
+                        model_id=f'xgb_{nestim}_{max_depth}_{lr}',
+                        vectype='tf-idf')
+
 
 
 ##########################################
