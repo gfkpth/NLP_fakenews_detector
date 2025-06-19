@@ -360,6 +360,17 @@ helper.print_evaluation(None,
 
 # Note how terribly both transformer models are performing here! Something must be off, for some reason they are actually predicting everything as fake
 
+
+#######################
+# Comparing results
+
+# %%
+results = pd.read_csv('results.csv').sort_values(by='accuracy',ascending=False)
+results
+
+
+##################################
+# Predicting results for test.csv
 # %%
 
 
@@ -386,17 +397,5 @@ test_df['rf_tfidf'] = rf_model.predict(X_test_final_tfidf)
 test_df['rf_glove'] = rf_glove.predict(X_test_final_glove)
 test_df['knn_tfidf'] = knn_model.predict(X_test_final_tfidf)
 
-# %%
-
-# List of headlines
-headlines_test_final = test_df['text'].tolist()
-
-# Hugging Face: omykhailiv model
-hugging_model1 = pipeline("text-classification", model="omykhailiv/bert-fake-news-recognition", top_k=1)
-test_df['omykhailiv'] = [1 if res[0]['label'].lower() == 'real' else 0 for res in hugging_model1(headlines_test_final)]
-
-# Hugging Face: jy model
-hugging_model2 = pipeline("text-classification", model="jy46604790/Fake-News-Bert-Detect", top_k=1)
-test_df['jy46604790'] = [1 if res[0]['label'].lower() == 'real' else 0 for res in hugging_model2(headlines_test_final)]
 
 # %%
