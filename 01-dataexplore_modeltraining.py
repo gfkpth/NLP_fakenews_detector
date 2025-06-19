@@ -360,8 +360,43 @@ helper.print_evaluation(None,
 
 # Note how terribly both transformer models are performing here! Something must be off, for some reason they are actually predicting everything as fake
 
-# %% result overview
-results =pd.read_csv('results.csv').sort_values(by='accuracy',ascending=False)
-results
+# %%
 
 
+# Load test data
+test_df = pd.read_csv("data/testing_data.csv")
+
+# Clean the text
+test_df['clean_text'] = test_df['text'].apply(helper.cleaning_strings)
+test_df['no_stop'] = test_df['clean_text'].apply(helper.remove_stop)
+
+# %%
+
+# TF-IDF
+X_test_final_tfidf = tfidf_vectorizer.transform(test_df['clean_text'])
+
+# GloVe
+X_test_final_glove = helper.dense_vectorize_text(test_df['no_stop'], glove, vector_size=glove_size)
+# %%
+
+# Predictions
+test_df['logreg_tfidf'] = logreg.predict(X_test_final_tfidf)
+test_df['logreg_glove'] = logreg_glove.predict(X_test_final_glove)
+test_df['rf_tfidf'] = rf_model.predict(X_test_final_tfidf)
+test_df['rf_glove'] = rf_glove.predict(X_test_final_glove)
+test_df['knn_tfidf'] = knn_model.predict(X_test_final_tfidf)
+
+# %%
+
+# List of headlines
+headlines_test_final = test_df['text'].tolist()
+
+# Hugging Face: omykhailiv model
+hugging_model1 = pipeline("text-classification", model="omykhailiv/bert-fake-news-recognition", top_k=1)
+test_df['omykhailiv'] = [1 if res[0]['label'].lower() == 'real' else 0 for res in hugging_model1(headlines_test_final)]
+
+# Hugging Face: jy model
+hugging_model2 = pipeline("text-classification", model="jy46604790/Fake-News-Bert-Detect", top_k=1)
+test_df['jy46604790'] = [1 if res[0]['label'].lower() == 'real' else 0 for res in hugging_model2(headlines_test_final)]
+
+# %%
