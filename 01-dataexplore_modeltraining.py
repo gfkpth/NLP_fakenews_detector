@@ -365,6 +365,11 @@ helper.print_evaluation(None,
 results = pd.read_csv('results.csv').sort_values(by='accuracy',ascending=False)
 results
 
+# %%
+
+print(results[['model_id','params','acc_train','accuracy']].to_latex(index=False, float_format="%.3f"))
+
+
 
 ##################################
 # Predicting results for test.csv
@@ -392,4 +397,22 @@ test_df['knn_tfidf'] = knn_model.predict(X_test_final_tfidf)
 
 # %%
 test_df.head()
-# %%
+
+# %% to follow instructions, we use our logreg predictions for the final answer
+
+test_df[['logreg_tfidf','text']].to_csv('data/testing_data_with_predictions.csv',sep='\t',header=False,index=False)
+
+
+####################################
+# Additional checks for curiosity
+# %% but we also save a csv.file with our four predictions for later calculation of inter-annotator agreement
+test_df.to_csv('data/testing_data_multiplepredictions_interannotatorcheck.csv',sep='t',index=False)
+
+# %% calculate inter-annotator agreement (using nltk.agreement)
+
+taskdata=[[0,str(i),str(rater1[i])] for i in range(0,len(rater1))]+[[1,str(i),str(rater2[i])] for i in range(0,len(rater2))]+[[2,str(i),str(rater3[i])] for i in range(0,len(rater3))]
+ratingtask = agreement.AnnotationTask(data=taskdata)
+print("kappa " +str(ratingtask.kappa()))
+print("fleiss " + str(ratingtask.multi_kappa()))
+print("alpha " +str(ratingtask.alpha()))
+print("scotts " + str(ratingtask.pi()))
