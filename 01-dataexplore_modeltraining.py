@@ -302,9 +302,10 @@ helper.print_evaluation(xgb_model, X_train_vectf, X_test_vectf, y_train, y_test,
 
 # %% XGBoost tweaking
 nestim=500
-max_depth=100
-lr=0.3
-xgb_model = xgb.XGBClassifier(n_estimators=nestim,max_depth=max_depth, learning_rate=lr, random_state=1)
+max_depth=200
+lr=0.07
+alpha=0.1
+xgb_model = xgb.XGBClassifier(n_estimators=nestim,max_depth=max_depth, learning_rate=lr,reg_alpha=alpha, random_state=1)
 xgb_model.fit(X_train_vectf, y_train)
 
 # Evaluate
@@ -313,8 +314,8 @@ helper.print_evaluation(xgb_model,
                         X_test_vectf, 
                         y_train, 
                         y_test,
-                        f'n_estim={nestim},max_depth={max_depth},lr={lr}',
-                        model_id=f'xgb_{nestim}_{max_depth}_{lr}',
+                        f'n_estim={nestim},max_depth={max_depth},lr={lr},alpha={alpha}',
+                        model_id=f'xgb_{nestim}_{max_depth}_{lr}_{alpha}',
                         vectype='tf-idf')
 
 
