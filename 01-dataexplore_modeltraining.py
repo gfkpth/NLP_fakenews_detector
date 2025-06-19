@@ -40,6 +40,8 @@ from nltk import word_tokenize, bigrams, trigrams
 from sklearn.feature_extraction.text import TfidfVectorizer,CountVectorizer
 from wordcloud import WordCloud
 
+import gensim.downloader as api # download pre-trained models
+
 from transformers import pipeline
 from tqdm import tqdm
 
@@ -117,7 +119,7 @@ wordcloud_real = WordCloud(width=800, height=400, background_color='white').gene
 plt.imshow(wordcloud_real, interpolation='bilinear')
 plt.axis('off')
 plt.title("Word Cloud for Real News")
-plt.figsave('assets/wordcloud-real.png')
+plt.savefig('assets/wordcloud-real.png')
 plt.show()
 # %%
 # Plot word cloud for fake news
@@ -126,7 +128,7 @@ wordcloud_fake = WordCloud(width=800, height=400, background_color='white').gene
 plt.imshow(wordcloud_fake, interpolation='bilinear')
 plt.axis('off')
 plt.title("Word Cloud for Fake News")
-plt.figsave('assets/wordcloud-fake.png')
+plt.savefig('assets/wordcloud-fake.png')
 plt.show()
 
 
@@ -189,7 +191,7 @@ X_test_dirty = X_test_tmp['text'].values
 
 
 #############
-# Vectorise
+# Vectorisation
 # %% Create a TF-IDF vectorizer
 tfidf_vectorizer = TfidfVectorizer(
     max_features=1000,  # Limit to 1000 features
@@ -198,9 +200,16 @@ tfidf_vectorizer = TfidfVectorizer(
     token_pattern=r'\b\w+\b'  # Tokenize words
 )
 # Fit and transform on cleaned text data
-X_train_vector = tfidf_vectorizer.fit_transform(X_train).toarray()
-X_test_vector = tfidf_vectorizer.transform(X_test).toarray()
-#y = annotated['label']
+X_train_vectf = tfidf_vectorizer.fit_transform(X_train).toarray()
+X_test_vectf = tfidf_vectorizer.transform(X_test).toarray()
+
+# %%
+X_train[:20]
+
+# %% vectorising with GloVE
+glove = api.load("glove-wiki-gigaword-100")
+X_train_glove = helper.dense_vectorize_text(X_train,glove)
+
 
 #################################
 # Model training and evaluation
@@ -212,10 +221,10 @@ from sklearn.linear_model import LogisticRegression
 # Create a logistic regression model
 logreg = LogisticRegression(max_iter=1000,random_state=5)
 # Train the model
-logreg.fit(X_train_vector, y_train)
+logreg.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(logreg, X_train_vector, X_test_vector, y_train, y_test,'max_iter=1000',model_id='logreg_1000',vectype='tf-idf')
+helper.print_evaluation(logreg, X_train_vectf, X_test_vectf, y_train, y_test,'max_iter=1000',model_id='logreg_1000',vectype='tf-idf')
 
 
 # %%
@@ -225,10 +234,10 @@ nestim=100
 # Create a random forest classifier
 rf_model = RandomForestClassifier(n_estimators=nestim, random_state=42)
 # Train the model
-rf_model.fit(X_train_vector, y_train)
+rf_model.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(rf_model, X_train_vector, X_test_vector, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
+helper.print_evaluation(rf_model, X_train_vectf, X_test_vectf, y_train, y_test,f'n_estimators={nestim}',model_id='rndforest_1',vectype='tf-idf')
 
 # %%
 # Create KNN model
@@ -237,10 +246,10 @@ neigh= 5
 # Create a KNN classifier
 knn_model = KNeighborsClassifier(n_neighbors=neigh)
 # Train the model
-knn_model.fit(X_train_vector, y_train)
+knn_model.fit(X_train_vectf, y_train)
 
 # Evaluate
-helper.print_evaluation(knn_model, X_train_vector, X_test_vector, y_train, y_test,f'k={neigh}',model_id='knn_5',vectype='tf-idf')
+helper.print_evaluation(knn_model, X_train_vectf, X_test_vectf, y_train, y_test,f'k={neigh}',model_id='knn_5',vectype='tf-idf')
 
 
 ##########################################

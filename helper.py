@@ -14,6 +14,7 @@ from tqdm import tqdm
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 
 import pandas as pd
 import re
@@ -83,8 +84,18 @@ def lemmatize(lst):
 
     
     
-    
-## to be confirmed    
+def dense_vectorize_text(texts, model, vector_size=100):
+    vectors = []
+    for text in texts:
+        word_vectors = []
+        for word in text.split():  # assuming `text` is a string of words
+            if word in model:
+                word_vectors.append(model[word])
+        if word_vectors:
+            vectors.append(np.mean(word_vectors, axis=0))  # mean pooling
+        else:
+            vectors.append(np.zeros(vector_size))  # fallback for unknown words
+    return np.array(vectors)    
     
 
 # Function to run predictions with a Hugging Face pipeline
