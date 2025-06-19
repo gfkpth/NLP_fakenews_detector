@@ -175,16 +175,20 @@ jy46604790 & defaults & 0.514 & 0.517 \\
 
 ##
 
-- logistic regression model offers best performance here
+- logistic regression model offers best performance among tested options
+- practical: using py files to avoid notebook consistency issues with git
+- VS Code offers the option of generating jupyter-like cells with `# %%`
+
+## Outlook/reflection
+
+  - further experimentation with vectoriser settings
+  - actually implement lemmatisation (oops)
 - some confusion in our raw performance results.csv
   - some RandomForest models seemed to perform better than final model, but probably due to earlier mistakes in preprocessing?
   - lesson: also note changes to preprocessing or cleanly reset logging files
 
 
-### Collaboration
 
-- used py files to avoid notebook consistency issues with git
-- VS Code offers the possibility of generating jupyter-like cells with `# %%` 
 
 
 ## 

@@ -36,7 +36,7 @@ This project tackles the problem of identifying fake news headlines using Natura
 - GloVe Embeddings: Word vectors averaged to form dense representation
 
 ## Models Trained
-| Model               | Feature Type | Notes                                  |
+| Model               | Vector Type  | Notes                                  |
 | ------------------- | ------------ | -------------------------------------- |
 | Logistic Regression | TF-IDF       | High accuracy, lightweight             |
 | Random Forest       | TF-IDF       | Handles nonlinear relationships        |
