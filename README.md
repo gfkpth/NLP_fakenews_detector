@@ -42,14 +42,14 @@ This project tackles the problem of identifying fake news headlines using Natura
 - GloVe Embeddings: Word vectors averaged to form dense representation
 
 ## Models Trained
-| Model               | Vector Type  | Notes                                                        |
-| ------------------- | ------------ | -------------------------------------------------------------|
-| Logistic Regression | TF-IDF       | High accuracy, lightweight                                   |
-| Random Forest       | TF-IDF       | Handles nonlinear relationships                              |
-| K-Nearest Neighbors | TF-IDF       | Simpler baseline, slower on large data                       |
-| Logistic Regression | GloVe        | Dense embeddings, performs ok, but worse than TF-IDF         |
-| Random Forest       | GloVe        | More noise-sensitive with dense input                        |
-| XGBoost             | TF-IDF       | Strong performance, faster than RF                           |
+| Model               | Vector Type  | Notes                                                                  |
+| ------------------- | ------------ | -----------------------------------------------------------------------|
+| Logistic Regression | TF-IDF       | Highest accuracy, lightweight                                          |
+| Random Forest       | TF-IDF       | Handles nonlinear relationships, performance slightly worse thanLogReg |
+| K-Nearest Neighbors | TF-IDF       | Simpler baseline, performance somewhat worse                           |
+| Logistic Regression | GloVe        | Dense embeddings, performs ok, but worse than TF-IDF                   |
+| Random Forest       | GloVe        | More noise-sensitive with dense input                                  |
+| XGBoost             | TF-IDF       | Strong performance (but see below), slower training                    |
 
 
 ## Hugging Face Models
@@ -58,6 +58,8 @@ This project tackles the problem of identifying fake news headlines using Natura
 Used for inference on test headlines. Outputs mapped:
 REAL → 1
 FAKE → 0
+
+Using these models directly without training leads to bad results (everything predicted to be fake).
 
 ## Evaluation
 Performed on validation split (80/20) from training data using:
