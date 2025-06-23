@@ -78,3 +78,8 @@ We also created predictions with the three other top-performing machine learning
 
 For reasons currently unclear to us, the XGBClassifier performed very badly - it assigned 0 to all test items.
 For a comparison of inter-annotator agreement we therefore excluded that model. Cohen's κ for the three remaining models (Logistic Regression, Random Forest, KNN) was 0.32, indicating 'fair agreement'.
+
+
+# Experiment with transfer learning
+
+The file [Transfer_experiment.py](Transfer_experiment.py) contains a brief proof of concept of using the Trainer class to actually train a pre-trained model on the current data. The results are in the range of an accuracy of > 0.98 after 2 epochs. In the interest of space, only the code is provided here.
