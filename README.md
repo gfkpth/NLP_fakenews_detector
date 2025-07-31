@@ -1,7 +1,7 @@
 # NLP_fakenews_detector using NLP
 
 ## Overview
-This project tackles the problem of identifying fake news headlines using Natural Language Processing (NLP). We used a labeled dataset to train multiple pmodels, including Logistic Regression, Random Forest, XGB, and KNN, with both TF-IDF and GloVe text representations. Additionally, we integrated pre-trained transformer models from Hugging face to compare performance. The final goal was to accurately classify unseen headlines as real or fake and generate prediction files in the required format. Throughout the process, we applied data cleaning, feature engineering, model evaluation and inference techniques to build a robust fake news detecction pipeline.
+This project tackles the problem of identifying fake news headlines using Natural Language Processing (NLP). We used a labeled dataset to train multiple models, including Logistic Regression, Random Forest, XGB, and KNN, with both TF-IDF and GloVe text representations, achieving an accuracy of ~90.4% on the best model (logistic regression). Additionally, we integrated a pre-trained, BERT-based transformer model from Hugging face to compare performance, achieving >98% accuracy. The final goal was to accurately classify unseen headlines as real or fake and generate prediction files in the required format. Throughout the process, we applied data cleaning, feature engineering, model evaluation and inference techniques to build a robust fake news detection pipeline.
  
 ## Objectives
 - Clean and preprocess real-world text data
